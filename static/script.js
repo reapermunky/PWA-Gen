@@ -1,7 +1,13 @@
 document.getElementById('generate').addEventListener('click', async () => {
     const requestText = document.getElementById('userRequest').value;
-    if (!requestText) {
+    const apiKey = document.getElementById('apiKey').value;
+
+    if (!requestText && !document.getElementById('templateSelect').value) {
         alert('Please enter a description for the PWA or select a template.');
+        return;
+    }
+    if (!apiKey) {
+        alert('Please enter your API key.');
         return;
     }
 
@@ -10,42 +16,51 @@ document.getElementById('generate').addEventListener('click', async () => {
     // Check if user selected a template
     const selectedTemplate = document.getElementById('templateSelect').value;
     if (selectedTemplate) {
-        const response = await fetch('/Metapwa/static/templates.json');
-        const templates = await response.json();
-        const template = templates.templates[selectedTemplate];
-        if (template) {
-            generatedHTML = template.html;
-            generatedCSS = `<style>${template.css}</style>`;
-            generatedJS = `<script>${template.js}</script>`;
+        try {
+            const response = await fetch('./static/templates.json');
+            if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+            const templates = await response.json();
+            const template = templates.templates[selectedTemplate];
+            if (template) {
+                generatedHTML = template.html;
+                generatedCSS = `<style>${template.css}</style>`;
+                generatedJS = `<script>${template.js}</script>`;
+            }
+        } catch (error) {
+            console.error("Error loading templates:", error);
+            alert('Failed to load templates. Please check your internet connection or try again later.');
+            return;
         }
     } else {
         // Call OpenAI API if no template is selected
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer YOUR_OPENAI_API_KEY', // Replace with actual API key
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                model: 'gpt-4',
-                messages: [
-                    { role: 'system', content: 'Generate a complete PWA based on the user request. Include HTML, CSS, and JavaScript as separate code blocks. Make sure the JavaScript does not contain syntax errors.' },
-                    { role: 'user', content: requestText }
-                ],
-                temperature: 0.7
-            })
-        });
+        try {
+            const response = await fetch('https://api.openai.com/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4',
+                    messages: [
+                        { role: 'system', content: 'Generate a complete PWA based on the user request. Include HTML, CSS, and JavaScript as separate code blocks. Ensure the JavaScript does not contain syntax errors.' },
+                        { role: 'user', content: requestText }
+                    ],
+                    temperature: 0.7
+                })
+            });
 
-        if (!response.ok) {
-            alert('Failed to generate PWA. Please try again.');
+            if (!response.ok) throw new Error('API call failed');
+
+            const data = await response.json();
+            generatedHTML = data.choices[0].message.content.match(/<html>.*<\/html>/s)?.[0] || "<h1>Error: No valid HTML received.</h1>";
+            generatedCSS = data.choices[0].message.content.match(/<style>.*<\/style>/s)?.[0] || "";
+            generatedJS = data.choices[0].message.content.match(/<script>.*<\/script>/s)?.[0] || "";
+        } catch (error) {
+            console.error("Error generating PWA:", error);
+            alert('Failed to generate PWA. Please try again later.');
             return;
         }
-
-        const data = await response.json();
-
-        generatedHTML = data.choices[0].message.content.match(/<html>.*<\/html>/s)?.[0] || "<h1>Error: No valid HTML received.</h1>";
-        generatedCSS = data.choices[0].message.content.match(/<style>.*<\/style>/s)?.[0] || "";
-        generatedJS = data.choices[0].message.content.match(/<script>.*<\/script>/s)?.[0] || "";
     }
 
     // Apply selected theme
@@ -95,13 +110,18 @@ document.getElementById('toggleDarkMode').addEventListener('click', () => {
 
 // Load templates into dropdown menu
 document.addEventListener('DOMContentLoaded', async () => {
-    const response = await fetch('static/templates.json');
-    const templates = await response.json();
-    const select = document.getElementById('templateSelect');
-    for (const key in templates.templates) {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = templates.templates[key].name;
-        select.appendChild(option);
+    try {
+        const response = await fetch('./static/templates.json');
+        if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+        const templates = await response.json();
+        const select = document.getElementById('templateSelect');
+        for (const key in templates.templates) {
+            const option = document.createElement('option');
+            option.value = key;
+            option.textContent = templates.templates[key].name;
+            select.appendChild(option);
+        }
+    } catch (error) {
+        console.error('Error loading templates:', error);
     }
 });
