@@ -1,15 +1,13 @@
-// service-worker.js
-
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open('meta-pwa-cache-v1').then((cache) => {
       return cache.addAll([
-        '/',
-        '/index.html',
-        '/static/style.css',
-        '/static/script.js',
-        '/manifest.json',
-        '/static/templates.json'
+        './',
+        './index.html',
+        './static/style.css',
+        './static/script.js',
+        './manifest.json',
+        './static/templates.json'
       ]);
     })
   );
@@ -17,7 +15,7 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('fetch', (event) => {
   // Always fetch templates.json fresh to avoid caching issues
-  if (event.request.url.endsWith('templates.json')) {
+  if (event.request.url.includes('static/templates.json')) {
     event.respondWith(fetch(event.request));
     return;
   }
