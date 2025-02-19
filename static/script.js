@@ -17,8 +17,8 @@ document.getElementById('generate').addEventListener('click', async () => {
     const selectedTemplate = document.getElementById('templateSelect').value;
     if (selectedTemplate) {
         try {
-            // Updated fetch URL to use absolute path
-            const response = await fetch('/static/templates.json');
+            // Use relative path
+            const response = await fetch('static/templates.json');
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const templates = await response.json();
             const template = templates.templates[selectedTemplate];
@@ -54,10 +54,10 @@ document.getElementById('generate').addEventListener('click', async () => {
             if (!response.ok) throw new Error('API call failed');
 
             const data = await response.json();
-            console.log("🔹 API Response:", data); // LOG API RESPONSE TO DEBUG
+            console.log("🔹 API Response:", data);
 
             let content = data.choices[0].message.content;
-            let splitContent = content.split("```"); // Split content at code blocks
+            let splitContent = content.split("```");
 
             let htmlBlock = splitContent.find(block => block.includes("<html>")) || "<h1>Error: No valid HTML received.</h1>";
             let cssBlock = splitContent.find(block => block.includes("css")) || "";
@@ -88,7 +88,7 @@ document.getElementById('generate').addEventListener('click', async () => {
 
     // Debugging: Check for common syntax errors before rendering
     try {
-        new Function(generatedJS.replace(/<script>|<\/script>/g, '')); // Check JS syntax without execution
+        new Function(generatedJS.replace(/<script>|<\/script>/g, ''));
     } catch (error) {
         alert('Error in generated JavaScript: ' + error.message);
         return;
@@ -125,8 +125,8 @@ document.getElementById('toggleDarkMode').addEventListener('click', () => {
 // Load templates into dropdown menu with error handling
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Updated fetch URL to use absolute path
-        const response = await fetch('/static/templates.json');
+        // Use relative path
+        const response = await fetch('static/templates.json');
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const templates = await response.json();
         const select = document.getElementById('templateSelect');
@@ -138,6 +138,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (error) {
         console.error('Error loading templates:', error);
-        alert("Failed to load templates. Ensure '/static/templates.json' is accessible.");
+        alert("Failed to load templates. Ensure 'static/templates.json' is accessible.");
     }
 });
