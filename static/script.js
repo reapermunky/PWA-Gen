@@ -108,7 +108,7 @@ document.getElementById('toggleDarkMode').addEventListener('click', () => {
     document.body.classList.toggle('dark-mode');
 });
 
-// Load templates into dropdown menu
+// Load templates into dropdown menu with error handling
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         const response = await fetch('./static/templates.json');
@@ -123,5 +123,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
     } catch (error) {
         console.error('Error loading templates:', error);
+        alert("Failed to load templates. Ensure 'templates.json' is accessible.");
     }
 });
