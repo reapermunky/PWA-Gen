@@ -17,8 +17,8 @@ document.getElementById('generate').addEventListener('click', async () => {
     const selectedTemplate = document.getElementById('templateSelect').value;
     if (selectedTemplate) {
         try {
-            // Use relative path
-            const response = await fetch('static/templates.json');
+            // Use relative path (no leading slash)
+            const response = await fetch("static/templates.json");
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
             const templates = await response.json();
             const template = templates.templates[selectedTemplate];
@@ -29,7 +29,7 @@ document.getElementById('generate').addEventListener('click', async () => {
             }
         } catch (error) {
             console.error("Error loading templates:", error);
-            alert('Failed to load templates. Please check your internet connection or try again later.');
+            alert("Failed to load templates. Ensure 'static/templates.json' is accessible.");
             return;
         }
     } else {
@@ -125,8 +125,8 @@ document.getElementById('toggleDarkMode').addEventListener('click', () => {
 // Load templates into dropdown menu with error handling
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Use relative path
-        const response = await fetch('static/templates.json');
+        // Use relative path (no leading slash)
+        const response = await fetch("static/templates.json");
         if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
         const templates = await response.json();
         const select = document.getElementById('templateSelect');
