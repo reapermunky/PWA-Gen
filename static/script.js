@@ -17,9 +17,7 @@ document.getElementById('generate').addEventListener('click', async () => {
   const selectedTemplate = document.getElementById('templateSelect').value;
   if (selectedTemplate) {
     try {
-      console.log("Fetching template data from: static/templates.json");
       const response = await fetch("static/templates.json");
-      console.log("Templates fetch status:", response.status);
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const templates = await response.json();
       const template = templates.templates[selectedTemplate];
@@ -34,7 +32,7 @@ document.getElementById('generate').addEventListener('click', async () => {
       return;
     }
   } else {
-    // Call OpenAI API if no template is selected
+    // Replace the old API call try/catch block with the updated snippet below:
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -58,11 +56,15 @@ document.getElementById('generate').addEventListener('click', async () => {
       console.log("🔹 API Response:", data);
 
       let content = data.choices[0].message.content;
-      let splitContent = content.split("```");
 
-      let htmlBlock = splitContent.find(block => block.includes("<html>")) || "<h1>Error: No valid HTML received.</h1>";
-      let cssBlock = splitContent.find(block => block.includes("css")) || "";
-      let jsBlock = splitContent.find(block => block.includes("script")) || "";
+      // Updated regex extraction for code blocks
+      const htmlMatch = content.match(/```html\s*([\s\S]*?)```/);
+      const cssMatch = content.match(/```css\s*([\s\S]*?)```/);
+      const jsMatch = content.match(/```(?:js|javascript)\s*([\s\S]*?)```/);
+
+      let htmlBlock = htmlMatch ? htmlMatch[1] : "<h1>Error: No valid HTML received.</h1>";
+      let cssBlock = cssMatch ? cssMatch[1] : "";
+      let jsBlock = jsMatch ? jsMatch[1] : "";
 
       console.log("🔹 Extracted HTML:", htmlBlock);
       console.log("🔹 Extracted CSS:", cssBlock);
@@ -116,30 +118,4 @@ document.getElementById('generate').addEventListener('click', async () => {
   doc.open();
   doc.write(fullHTML);
   doc.close();
-});
-
-// Dark mode toggle
-document.getElementById('toggleDarkMode').addEventListener('click', () => {
-  document.body.classList.toggle('dark-mode');
-});
-
-// Load templates into dropdown menu with error handling
-document.addEventListener('DOMContentLoaded', async () => {
-  try {
-    console.log("Fetching templates for dropdown from: static/templates.json");
-    const response = await fetch("static/templates.json");
-    console.log("Templates dropdown fetch status:", response.status);
-    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-    const templates = await response.json();
-    const select = document.getElementById('templateSelect');
-    for (const key in templates.templates) {
-      const option = document.createElement('option');
-      option.value = key;
-      option.textContent = templates.templates[key].name;
-      select.appendChild(option);
-    }
-  } catch (error) {
-    console.error('Error loading templates:', error);
-    alert("Failed to load templates. Ensure 'static/templates.json' is accessible.");
-  }
 });
