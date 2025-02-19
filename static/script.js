@@ -53,9 +53,20 @@ document.getElementById('generate').addEventListener('click', async () => {
             if (!response.ok) throw new Error('API call failed');
 
             const data = await response.json();
-            generatedHTML = data.choices[0].message.content.match(/<html>.*<\/html>/s)?.[0] || "<h1>Error: No valid HTML received.</h1>";
-            generatedCSS = data.choices[0].message.content.match(/<style>.*<\/style>/s)?.[0] || "";
-            generatedJS = data.choices[0].message.content.match(/<script>.*<\/script>/s)?.[0] || "";
+            console.log("🔹 API Response:", data); // LOG API RESPONSE TO DEBUG
+
+            // Extract content using better parsing method
+            let content = data.choices[0].message.content;
+            let splitContent = content.split("```"); // Split content at code blocks
+
+            let htmlBlock = splitContent.find(block => block.includes("<html>")) || "<h1>Error: No valid HTML received.</h1>";
+            let cssBlock = splitContent.find(block => block.includes("css")) || "";
+            let jsBlock = splitContent.find(block => block.includes("script")) || "";
+
+            generatedHTML = htmlBlock;
+            generatedCSS = `<style>${cssBlock}</style>`;
+            generatedJS = `<script>${jsBlock}</script>`;
+
         } catch (error) {
             console.error("Error generating PWA:", error);
             alert('Failed to generate PWA. Please try again later.');
@@ -95,7 +106,6 @@ document.getElementById('generate').addEventListener('click', async () => {
         </body>
         </html>`;
 
-    // Inject into iframe for live preview
     const previewFrame = document.getElementById('preview');
     const doc = previewFrame.contentDocument || previewFrame.contentWindow.document;
     doc.open();
