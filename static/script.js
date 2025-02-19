@@ -55,13 +55,16 @@ document.getElementById('generate').addEventListener('click', async () => {
             const data = await response.json();
             console.log("🔹 API Response:", data); // LOG API RESPONSE TO DEBUG
 
-            // Extract content using better parsing method
             let content = data.choices[0].message.content;
             let splitContent = content.split("```"); // Split content at code blocks
 
             let htmlBlock = splitContent.find(block => block.includes("<html>")) || "<h1>Error: No valid HTML received.</h1>";
             let cssBlock = splitContent.find(block => block.includes("css")) || "";
             let jsBlock = splitContent.find(block => block.includes("script")) || "";
+
+            console.log("🔹 Extracted HTML:", htmlBlock);
+            console.log("🔹 Extracted CSS:", cssBlock);
+            console.log("🔹 Extracted JS:", jsBlock);
 
             generatedHTML = htmlBlock;
             generatedCSS = `<style>${cssBlock}</style>`;
