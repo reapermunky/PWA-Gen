@@ -17,6 +17,7 @@ document.getElementById('generate').addEventListener('click', async () => {
   const selectedTemplate = document.getElementById('templateSelect').value;
   if (selectedTemplate) {
     try {
+      console.log("Fetching template data from: static/templates.json");
       const response = await fetch("static/templates.json");
       if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
       const templates = await response.json();
@@ -32,7 +33,7 @@ document.getElementById('generate').addEventListener('click', async () => {
       return;
     }
   } else {
-    // Replace the old API call try/catch block with the updated snippet below:
+    // Call OpenAI API if no template is selected
     try {
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -43,7 +44,7 @@ document.getElementById('generate').addEventListener('click', async () => {
         body: JSON.stringify({
           model: 'gpt-4',
           messages: [
-            { role: 'system', content: 'Generate a complete PWA based on the user request. Include HTML, CSS, and JavaScript as separate code blocks. Ensure the JavaScript does not contain syntax errors.' },
+            { role: 'system', content: 'Generate a complete PWA based on the user request. Include HTML, CSS, and JavaScript as separate code blocks. Ensure that the JavaScript code does not include any extra tokens outside the code block.' },
             { role: 'user', content: requestText }
           ],
           temperature: 0.7
@@ -57,14 +58,19 @@ document.getElementById('generate').addEventListener('click', async () => {
 
       let content = data.choices[0].message.content;
 
-      // Updated regex extraction for code blocks
-      const htmlMatch = content.match(/```html\s*([\s\S]*?)```/);
-      const cssMatch = content.match(/```css\s*([\s\S]*?)```/);
-      const jsMatch = content.match(/```(?:js|javascript)\s*([\s\S]*?)```/);
+      // Use case-insensitive regex to extract code blocks for HTML, CSS, and JavaScript.
+      const htmlMatch = content.match(/```html\s*([\s\S]*?)```/i);
+      const cssMatch = content.match(/```css\s*([\s\S]*?)```/i);
+      const jsMatch = content.match(/```(?:js|javascript)\s*([\s\S]*?)```/i);
 
-      let htmlBlock = htmlMatch ? htmlMatch[1] : "<h1>Error: No valid HTML received.</h1>";
-      let cssBlock = cssMatch ? cssMatch[1] : "";
-      let jsBlock = jsMatch ? jsMatch[1] : "";
+      let htmlBlock = htmlMatch ? htmlMatch[1].trim() : "<h1>Error: No valid HTML received.</h1>";
+      let cssBlock = cssMatch ? cssMatch[1].trim() : "";
+      let jsBlock = jsMatch ? jsMatch[1].trim() : "";
+
+      // Clean up any stray text from the JS block (for example, remove a leading "html" if present)
+      if (jsBlock.toLowerCase().startsWith("html")) {
+        jsBlock = jsBlock.replace(/^html\s*/i, '');
+      }
 
       console.log("🔹 Extracted HTML:", htmlBlock);
       console.log("🔹 Extracted CSS:", cssBlock);
@@ -73,7 +79,6 @@ document.getElementById('generate').addEventListener('click', async () => {
       generatedHTML = htmlBlock;
       generatedCSS = `<style>${cssBlock}</style>`;
       generatedJS = `<script>${jsBlock}</script>`;
-
     } catch (error) {
       console.error("Error generating PWA:", error);
       alert('Failed to generate PWA. Please try again later.');
@@ -118,4 +123,30 @@ document.getElementById('generate').addEventListener('click', async () => {
   doc.open();
   doc.write(fullHTML);
   doc.close();
+});
+
+// Dark mode toggle
+document.getElementById('toggleDarkMode').addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+});
+
+// Load templates into dropdown menu with error handling
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    console.log("Fetching templates for dropdown from: static/templates.json");
+    const response = await fetch("static/templates.json");
+    console.log("Templates dropdown fetch status:", response.status);
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    const templates = await response.json();
+    const select = document.getElementById('templateSelect');
+    for (const key in templates.templates) {
+      const option = document.createElement('option');
+      option.value = key;
+      option.textContent = templates.templates[key].name;
+      select.appendChild(option);
+    }
+  } catch (error) {
+    console.error('Error loading templates:', error);
+    alert("Failed to load templates. Ensure 'static/templates.json' is accessible.");
+  }
 });
