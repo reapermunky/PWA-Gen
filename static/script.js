@@ -10,7 +10,7 @@ document.getElementById('generate').addEventListener('click', async () => {
     // Check if user selected a template
     const selectedTemplate = document.getElementById('templateSelect').value;
     if (selectedTemplate) {
-        const response = await fetch('/templates.json');
+        const response = await fetch('static/templates.json');
         const templates = await response.json();
         const template = templates.templates[selectedTemplate];
         if (template) {
