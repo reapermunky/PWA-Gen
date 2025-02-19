@@ -14,7 +14,7 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-  // Always fetch the templates file fresh
+  // Always fetch the templates file fresh from the network
   if (event.request.url.includes("static/templates.json")) {
     event.respondWith(fetch(event.request));
     return;
