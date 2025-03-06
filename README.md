@@ -1,4 +1,4 @@
-# Meta-PWA Generator
+# PWA Generator
 This is an AI-powered PWA generator. It allows you to create Progressive Web Apps on the fly using AI. 
 
 ## Features:
